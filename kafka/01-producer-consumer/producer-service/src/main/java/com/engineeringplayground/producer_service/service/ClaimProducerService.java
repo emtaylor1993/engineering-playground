@@ -5,12 +5,15 @@ import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * This class is responsible for producing messages to a Kafka topic.
  * It uses the KafkaTemplate to send messages to the specified topic.
  *
  * @author Emmanuel Taylor
  */
+@Slf4j 
 @Service 
 public class ClaimProducerService {
     
@@ -32,18 +35,16 @@ public class ClaimProducerService {
             kafkaTemplate.send("claims.submitted", claimJson)
                 .whenComplete((result, exception) -> {
                     if (exception != null) {
-                        System.err.println("Failed to publish message: " + exception.getMessage());
+                        log.error("Failed to publish message: {}", exception);
                     } else {
                         RecordMetadata metadata = result.getRecordMetadata();
-                        System.out.println("Message published successfully.");
-                        System.out.println("Topic: " + metadata.topic());
-                        System.out.println("Partition: " + metadata.partition());
-                        System.out.println("Offset: " + metadata.offset());
+                        log.info("Message published successfully. Topic: {}, Partition: {}, Offset: {}",
+                            metadata.topic(), metadata.partition(), metadata.offset());
                     }
                 }
             );
         } catch (KafkaException e) {
-            System.err.println("Failed to publish message: " + e.getMessage());
+            log.error("Failed to publish message: {}", e);
             throw e;
         }
     }
